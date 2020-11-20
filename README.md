@@ -1,1 +1,1 @@
-# dacon_landmark_classification
+# dacon_landmark_recognition_irelim
