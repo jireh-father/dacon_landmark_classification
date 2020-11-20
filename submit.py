@@ -64,6 +64,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-u', '--use_crop', default=False, action="store_true")
     parser.add_argument('--use_center_crop', default=False, action="store_true")
+    parser.add_argument('--use_pad', action='store_true', default=False)
 
     parser.add_argument('--center_crop_ratio', default=0.9, type=float)
 
@@ -105,7 +106,8 @@ if __name__ == '__main__':
     data_loader = util.get_data_loader(CustomDataset, [args.test_dir],
                                        util.get_test_transforms(input_size, args.use_crop,
                                                                 center_crop_ratio=args.center_crop_ratio,
-                                                                use_gray=args.use_gray),
+                                                                use_gray=args.use_gray,
+                                                                use_pad=args.use_pad),
                                        args.batch_size,
                                        args.num_workers, shuffle=False)
 

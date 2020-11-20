@@ -5,11 +5,14 @@ import argparse
 import random
 import util
 import trainer
+from torchvision.datasets.folder import ImageFolder
+import math
 import numpy as np
 import glob
 from torch.nn.modules.loss import _WeightedLoss
 import torch.nn.functional as F
 import augmentations
+import json
 from PIL import Image
 import pandas as pd
 
@@ -439,7 +442,7 @@ if __name__ == '__main__':
 
     input_size = args.input_size.split(",")
     if len(input_size) == 1:
-        input_size = int(input_size[0])
+        input_size = (int(input_size[0]), int(input_size[0]))
     else:
         input_size = (int(input_size[0]), int(input_size[1]))
 
@@ -483,7 +486,8 @@ if __name__ == '__main__':
         val_data_loader = util.get_data_loader(CustomDataset, [val_items],
                                                util.get_test_transforms(input_size, args.use_crop,
                                                                         center_crop_ratio=args.center_crop_ratio,
-                                                                        use_gray=args.use_gray),
+                                                                        use_gray=args.use_gray,
+                                                                        use_pad=args.transform_func_name == 'get_train_transforms_simple_bright_randomcrop_pad'),
                                                args.val_batch_size,
                                                args.num_workers, shuffle=False, pin_memory=args.val_pin_memory)
         print("created val data loader")

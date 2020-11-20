@@ -104,6 +104,7 @@ def get_val_samples(image_dir, label_file, val_ratio):
 
 
 def main(args):
+
     checkpoint_paths = args.checkpoint_paths.split(",")
 
     if args.weights is None:
@@ -111,7 +112,7 @@ def main(args):
     else:
         weights = [float(w) for w in args.weights.split(",")]
 
-        if len(checkpoint_paths) != len(weights):
+        if not args.use_glob and len(checkpoint_paths) != len(weights):
             sys.exit("weights count not matched with checkpoint_paths")
 
     if not args.from_pkl:
@@ -237,7 +238,8 @@ def main(args):
                 data_loader = util.get_data_loader(TestDataset, [args.test_dir],
                                                    util.get_test_transforms(input_size, use_crops[i],
                                                                             center_crop_ratio=args.center_crop_ratio,
-                                                                            use_gray=args.use_gray),
+                                                                            use_gray=args.use_gray,
+                                                                            use_pad=args.use_pad),
                                                    args.batch_size,
                                                    args.num_workers, shuffle=False)
 
@@ -272,8 +274,14 @@ def main(args):
     if args.eval:
         if args.from_pkl:
             eval_logits = None
+            if args.use_glob:
+                checkpoint_paths = [os.path.basename(p)[:-9] for p in glob.glob(os.path.join(args.pkl_dir, "*_eval.pkl"))]
+                weights = [1.0 / len(checkpoint_paths)] * len(checkpoint_paths)
+                print(weights)
+
             for i, logits_file in enumerate(checkpoint_paths):
-                logits = pickle.load(open(logits_file, "rb+"))
+                print(logits_file)
+                logits = pickle.load(open(os.path.join(args.pkl_dir, logits_file + "_eval.pkl"), "rb+"))
                 epoch_labels = logits['labels']
                 logits = logits['logits']
                 if eval_logits is None:
@@ -295,8 +303,12 @@ def main(args):
     if args.test:
         if args.from_pkl:
             test_logits = None
+            if args.use_glob:
+                checkpoint_paths = [os.path.basename(p)[:-9] for p in glob.glob(os.path.join(args.pkl_dir, "*_eval.pkl"))]
+                weights = [1.0 / len(checkpoint_paths)] * len(checkpoint_paths)
+                print(weights)
             for i, logits_file in enumerate(checkpoint_paths):
-                logits = pickle.load(open(logits_file, "rb+"))
+                logits = pickle.load(open(os.path.join(args.pkl_dir, logits_file + "_test.pkl"), "rb+"))
                 total_file_names = logits['file_names']
                 logits = logits['logits']
                 if test_logits is None:
@@ -305,6 +317,9 @@ def main(args):
                     test_logits += logits * weights[i]
         else:
             test_logits = test_logits  # / len(checkpoint_paths)
+
+        if sum(weights) != 1:
+            test_logits += (1 - sum(weights))
         test_indices = []
         test_scores = []
         for test_logit in test_logits:
@@ -329,8 +344,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--csv', type=str, default=None)
+    parser.add_argument('--pkl_dir', type=str, default=None)
     parser.add_argument('--output_dir', type=str, default=None)
     parser.add_argument('-c', '--checkpoint_paths', type=str, default=None, required=False, help='checkpoint path')
+    parser.add_argument('--use_glob', action='store_true', default=False)
 
     parser.add_argument('-i', '--image_dir', type=str)
     parser.add_argument('--val_ratio', type=float, default=0.1)
@@ -351,6 +368,7 @@ if __name__ == '__main__':
     parser.add_argument('--save', action='store_true', default=False)
     parser.add_argument('--test', action='store_true', default=False)
     parser.add_argument('--from_pkl', action='store_true', default=False)
+    parser.add_argument('--use_pad', action='store_true', default=False)
 
     parser.add_argument('--seed', type=int, default=None)
 
