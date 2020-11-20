@@ -10,6 +10,10 @@ import cv2
 cv2.setNumThreads(0)
 cv2.ocl.setUseOpenCL(False)
 import albumentations as al
+
+cv2.setNumThreads(0)
+cv2.ocl.setUseOpenCL(False)
+from albumentations.augmentations import functional as F
 from albumentations.pytorch import ToTensorV2
 from efficientnet_pytorch import EfficientNet
 
@@ -105,6 +109,23 @@ def init_model(model_name, num_classes=10, pretrained=True, pooling=None):
             except:
                 model = EfficientNet.from_name(model_name, num_classes=num_classes)
             return model
+    if model_name == "bagnet":
+        import bagnets.pytorchnet
+        model = bagnets.pytorchnet.bagnet17(pretrained=pretrained)
+        cls_layers = model_classifier_map[model_name]
+        in_features = getattr(model, cls_layers[0]).in_features
+        setattr(model, cls_layers[0], nn.Linear(in_features, num_classes))
+        return model
+
+    if model_name == "rexnet":
+        import rexnet
+        model = rexnet.ReXNetV1(width_mult=2.0, classes=num_classes)
+        return model
+
+    if model_name.startswith("fishnet"):
+        import net_factory
+        model = getattr(net_factory, model_name)(num_cls=num_classes)
+        return model
 
     for m_key in model_classifier_map:
         if m_key in model_name:
@@ -276,6 +297,42 @@ def get_train_transforms(input_size, use_crop=False, use_no_color_aug=False, use
             ])
 
 
+def get_train_transforms_simple_only_bright(input_size, use_crop=False, use_no_color_aug=False, use_center_crop=False,
+                                            center_crop_ratio=0.9, use_gray=False):
+    if isinstance(input_size, int):
+        input_size = (input_size, input_size)
+    return al.Compose(
+        [
+            al.Resize(input_size[0], input_size[1], p=1.0),
+            al.HorizontalFlip(p=0.5),
+            al.RandomBrightness(p=0.25, limit=0.2),
+            al.RandomContrast(p=0.25, limit=0.2),
+            al.ShiftScaleRotate(shift_limit=0.2, scale_limit=0.3, rotate_limit=15, p=0.3,
+                                border_mode=cv2.BORDER_CONSTANT),
+            al.Normalize(),
+            ToTensorV2()
+        ])
+
+
+def get_train_transforms_simple_bright_pad(input_size, use_crop=False, use_no_color_aug=False, use_center_crop=False,
+                                           center_crop_ratio=0.9, use_gray=False):
+    def longest_max_size(img, interpolation=cv2.INTER_LINEAR, **params):
+        img = F.longest_max_size(img, max_size=input_size, interpolation=interpolation)
+
+        return img
+
+    return al.Compose(
+        [
+            al.Lambda(longest_max_size),
+            al.PadIfNeeded(min_height=input_size, min_width=input_size, always_apply=True, border_mode=0),
+            al.HorizontalFlip(p=0.5),
+            al.RandomBrightness(p=0.2, limit=0.2),
+            al.RandomContrast(p=0.1, limit=0.2),
+            al.Normalize(),
+            ToTensorV2()
+        ])
+
+
 def get_train_transforms_simple_bright(input_size, use_crop=False, use_no_color_aug=False, use_center_crop=False,
                                        center_crop_ratio=0.9, use_gray=False):
     if isinstance(input_size, int):
@@ -290,6 +347,36 @@ def get_train_transforms_simple_bright(input_size, use_crop=False, use_no_color_
             al.Normalize(),
             ToTensorV2()
         ])
+
+
+def get_train_transforms_simple_bright_randomcrop_pad(input_size, use_crop=False, use_no_color_aug=False,
+                                                      use_center_crop=False,
+                                                      center_crop_ratio=0.9, use_gray=False):
+    if isinstance(input_size, int):
+        input_size = (input_size, input_size)
+
+    def longest_max_size(img, interpolation=cv2.INTER_LINEAR, **params):
+        img = F.longest_max_size(img, max_size=input_size[1], interpolation=interpolation)
+
+        return img
+
+    return al.Compose(
+        [al.RandomResizedCrop(height=input_size[0],
+                              width=input_size[1],
+                              scale=(0.4, 1.0),
+                              ratio=(0.85, 1.15),
+                              interpolation=0,
+                              p=0.5),
+         al.Lambda(longest_max_size),
+         al.PadIfNeeded(min_height=input_size[1], min_width=input_size[1], always_apply=True, border_mode=0),
+         # al.Resize(input_size[0], input_size[1], p=1.0),
+         al.HorizontalFlip(p=0.5),
+         al.RandomBrightness(p=0.2, limit=0.2),
+         al.RandomContrast(p=0.1, limit=0.2),
+         al.ShiftScaleRotate(shift_limit=0.1625, scale_limit=0.6, rotate_limit=0, p=0.7),
+         al.Normalize(),
+         ToTensorV2()
+         ])
 
 
 def get_train_transforms_simple_bright_randomcrop(input_size, use_crop=False, use_no_color_aug=False,
@@ -311,6 +398,18 @@ def get_train_transforms_simple_bright_randomcrop(input_size, use_crop=False, us
          al.Normalize(),
          ToTensorV2()
          ])
+
+
+def get_train_transforms_resize(input_size, use_crop=False, use_no_color_aug=False, use_center_crop=False,
+                                center_crop_ratio=0.9, use_gray=False):
+    if isinstance(input_size, int):
+        input_size = (input_size, input_size)
+    return al.Compose(
+        [
+            al.Resize(input_size[0], input_size[1], p=1.0),
+            al.Normalize(),
+            ToTensorV2()
+        ])
 
 
 def get_train_transforms_simple(input_size, use_crop=False, use_no_color_aug=False, use_center_crop=False,
@@ -501,7 +600,7 @@ def get_preprocess(input_size, use_crop=False, use_center_crop=False, center_cro
         ])
 
 
-def get_test_transforms(input_size, use_crop=False, center_crop_ratio=0.9, use_gray=False):
+def get_test_transforms(input_size, use_crop=False, center_crop_ratio=0.9, use_gray=False, use_pad=False):
     if isinstance(input_size, int):
         input_size = (input_size, input_size)
 
@@ -511,6 +610,16 @@ def get_test_transforms(input_size, use_crop=False, center_crop_ratio=0.9, use_g
                   al.CenterCrop(height=input_size[0], width=input_size[1])]
     else:
         resize = [al.Resize(input_size[0], input_size[1])]
+
+    if use_pad:
+        def longest_max_size(img, interpolation=cv2.INTER_LINEAR, **params):
+            img = F.longest_max_size(img, max_size=input_size[1], interpolation=interpolation)
+
+            return img
+
+        resize = [al.Lambda(longest_max_size),
+                  al.PadIfNeeded(min_height=input_size[1], min_width=input_size[1], always_apply=True, border_mode=0), ]
+
     return al.Compose(resize + [
         al.ToGray(p=1. if use_gray else 0.),
         al.Normalize(),
