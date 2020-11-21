@@ -65,6 +65,7 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--use_crop', default=False, action="store_true")
     parser.add_argument('--use_center_crop', default=False, action="store_true")
     parser.add_argument('--use_pad', action='store_true', default=False)
+    parser.add_argument('--use_benchmark', action='store_true', default=False)
 
     parser.add_argument('--center_crop_ratio', default=0.9, type=float)
 
