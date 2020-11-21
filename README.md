@@ -10,8 +10,8 @@ git clone https://github.com/jireh-father/dacon_landmark_classification.git
 ```
 
 ## 학습 및 평가
-위 환경과 동일한 커널로 main.ipynb 파일 실행하여 순서대로 실행.
-https://github.com/jireh-father/dacon_landmark_classification/blob/main/main.ipynb
+- 위 환경과 동일한 커널로 main.ipynb 파일 실행하여 순서대로 실행.
+- https://github.com/jireh-father/dacon_landmark_classification/blob/main/main.ipynb
 
 ## 솔루션 설명 PPT
 https://drive.google.com/file/d/1DtkN70qBbly7TtT5ciSwoEBkkp0Iehf2/view?usp=sharing
