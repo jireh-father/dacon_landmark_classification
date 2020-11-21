@@ -188,7 +188,8 @@ def main(args):
             model, _, _, _ = util.load_checkpoint(checkpoint_path, model,
                                                   model_name=model_names[i],
                                                   is_different_class_num=False,
-                                                  not_dict_model=False)
+                                                  not_dict_model=False,
+                                                  strict=args.strict)
             device = "cuda"
             model = model.to(device)
             model.eval()
@@ -376,6 +377,8 @@ if __name__ == '__main__':
     parser.add_argument('--test', action='store_true', default=False)
     parser.add_argument('--from_pkl', action='store_true', default=False)
     parser.add_argument('--use_pad', action='store_true', default=False)
+
+    parser.add_argument('--strict', action='store_true', default=False)
 
     parser.add_argument('--seed', type=int, default=None)
 
