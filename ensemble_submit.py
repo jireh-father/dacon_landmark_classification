@@ -189,7 +189,7 @@ def main(args):
                                                   model_name=model_names[i],
                                                   is_different_class_num=False,
                                                   not_dict_model=False,
-                                                  strict=args.strict)
+                                                  strict=not args.not_strict)
             device = "cuda"
             model = model.to(device)
             model.eval()
@@ -378,7 +378,7 @@ if __name__ == '__main__':
     parser.add_argument('--from_pkl', action='store_true', default=False)
     parser.add_argument('--use_pad', action='store_true', default=False)
 
-    parser.add_argument('--strict', action='store_true', default=False)
+    parser.add_argument('--not_strict', action='store_true', default=False)
 
     parser.add_argument('--seed', type=int, default=None)
 
