@@ -114,11 +114,11 @@ def train_or_val(model, criterion, optimizer, scheduler, data_loaders, num_epoch
 
     time_elapsed = time.time() - since
     print('Training or Validation completed in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    if 'val' in phases:
-        for val_name in val_bests:
-            print('%s Val - Best F1: %f, Best Acc: %f, Best Epoch %d' % (val_name, val_bests[val_name]['best_f1'],
-                                                                         val_bests[val_name]['best_acc'],
-                                                                         val_bests[val_name]['best_epoch']))
+    # if 'val' in phases:
+    #     for val_name in val_bests:
+    #         print('%s Val - Best F1: %f, Best Acc: %f, Best Epoch %d' % (val_name, val_bests[val_name]['best_f1'],
+    #                                                                      val_bests[val_name]['best_acc'],
+    #                                                                      val_bests[val_name]['best_epoch']))
     train_writer.close()
     val_writer.close()
     for key in val_writers:
@@ -395,10 +395,10 @@ def validate(model, criterion, data_loader, batch_size, epoch, device, writer, v
     elapsed_time = datetime.datetime.now() - start_time
     current_datetime = datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
 
-    tmp_acc = accuracy_score(epoch_labels, epoch_preds)
+    # tmp_acc = accuracy_score(epoch_labels, epoch_preds)
     f1 = f1_score(epoch_labels, epoch_preds, average='macro')
-    print("[result_%s_val-epoch:%d,%s] total_elapsed: %s, epoch_elapsed: %s, loss: %f, acc: %f, f1: %f, acc2: %f" % (
-        val_name, epoch, current_datetime, elapsed_time, epoch_elapsed, epoch_loss, epoch_acc, f1, tmp_acc))
+    print("[result_%s_val-epoch:%d,%s] total_elapsed: %s, epoch_elapsed: %s, loss: %f, acc: %f, f1: %f" % (
+        val_name, epoch, current_datetime, elapsed_time, epoch_elapsed, epoch_loss, epoch_acc, f1))
     if save_confusion_matrix:
         cls_report = classification_report(epoch_labels, epoch_preds)  # , target_names=classes)
         print("{} val classification_report".format(val_name))
