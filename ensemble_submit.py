@@ -110,6 +110,8 @@ def main(args):
     else:
         checkpoint_paths = args.checkpoint_paths.split(",")
 
+    print("all checkpoints", checkpoint_paths)
+
     if args.weights is None:
         weights = [1.0] * len(checkpoint_paths)
     else:
@@ -278,7 +280,8 @@ def main(args):
         if args.from_pkl:
             eval_logits = None
             if args.use_glob:
-                checkpoint_paths = [os.path.basename(p)[:-9] for p in glob.glob(os.path.join(args.pkl_dir, "*_eval.pkl"))]
+                checkpoint_paths = [os.path.basename(p)[:-9] for p in
+                                    glob.glob(os.path.join(args.pkl_dir, "*_eval.pkl"))]
                 weights = [1.0 / len(checkpoint_paths)] * len(checkpoint_paths)
                 print(weights)
 
@@ -307,7 +310,8 @@ def main(args):
         if args.from_pkl:
             test_logits = None
             if args.use_glob:
-                checkpoint_paths = [os.path.basename(p)[:-9] for p in glob.glob(os.path.join(args.pkl_dir, "*_eval.pkl"))]
+                checkpoint_paths = [os.path.basename(p)[:-9] for p in
+                                    glob.glob(os.path.join(args.pkl_dir, "*_eval.pkl"))]
                 weights = [1.0 / len(checkpoint_paths)] * len(checkpoint_paths)
                 print(weights)
             for i, logits_file in enumerate(checkpoint_paths):
