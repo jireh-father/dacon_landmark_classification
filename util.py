@@ -20,7 +20,8 @@ from efficientnet_pytorch import EfficientNet
 
 # import torch_optimizer as toptim
 
-def load_checkpoint(checkpoint_path, model, model_name=None, is_different_class_num=False, not_dict_model=False):
+def load_checkpoint(checkpoint_path, model, model_name=None, is_different_class_num=False, not_dict_model=False,
+                    strict=False):
     assert os.path.isfile(checkpoint_path)
     print("Loading checkpoint '{}'".format(checkpoint_path))
     checkpoint_dict = torch.load(checkpoint_path)
@@ -32,7 +33,7 @@ def load_checkpoint(checkpoint_path, model, model_name=None, is_different_class_
     if is_different_class_num:
         load_different_state_dict(model_name, model, pretrained_dict)
     else:
-        model.load_state_dict(pretrained_dict)
+        model.load_state_dict(pretrained_dict, strict=strict)
     if not_dict_model:
         return model, None, None, 1
     optimizer_state = checkpoint_dict['optimizer']
