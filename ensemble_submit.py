@@ -104,8 +104,10 @@ def get_val_samples(image_dir, label_file, val_ratio):
 
 
 def main(args):
-
-    checkpoint_paths = args.checkpoint_paths.split(",")
+    if args.use_glob:
+        checkpoint_paths = glob.glob(args.checkpoint_paths)
+    else:
+        checkpoint_paths = args.checkpoint_paths.split(",")
 
     if args.weights is None:
         weights = [1.0] * len(checkpoint_paths)
